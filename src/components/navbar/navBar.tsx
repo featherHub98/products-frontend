@@ -37,19 +37,13 @@ const NavigationBar: React.FC = () => {
         <Navbar.Collapse id="main-navbar">
           <Nav className="me-auto">
             <Nav.Link 
-              href="/auth/users" 
-              active={isActive('/auth/users')}
-              className={isActive('/auth/users') ? 'fw-bold' : ''}
+              href="/products" 
+              active={isActive('/products')}
+              className={isActive('/products') ? 'fw-bold' : ''}
             >
-              Auth Users
+              Products
             </Nav.Link>
-            <Nav.Link 
-              href="/realms/dashboard"
-              active={isActive('/realms/dashboard')}
-              className={isActive('/realms/dashboard') ? 'fw-bold' : ''}
-            >
-              Realms
-            </Nav.Link>
+            
           </Nav>
           
           <Nav>

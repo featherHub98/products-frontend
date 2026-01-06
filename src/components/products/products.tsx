@@ -4,117 +4,114 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
-interface AuthUser {
+interface Product {
   id: string;
-  username: string;
-  email: string;
-  roles: string;
-  realmId?: string;
+  name: string;
+  price: string;
+  
 }
 
-interface AuthUsersResponse {
-  users: AuthUser[];
+interface ProductsResponse {
+  products: Product[];
 }
 
-const AuthUsersDashboard: React.FC = () => {
-  const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
+const ProductsDashboard: React.FC = () => {
+ 
+  const [Products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   
   const [createForm, setCreateForm] = useState({
-    username: '',
-    email: '',
-    password: '',
-    roles: '',
+    name: '',
+    price: '',
+    
   });
   
-  const [updateForm, setUpdateForm] = useState<AuthUser & { password?: string }>({
-    id: '',
-    username: '',
-    email: '',
-    roles: '',
-    realmId: '',
+  const [updateForm, setUpdateForm] = useState<Product & { price?: string }>({
+    id:'',
+    name: '',
+    price: '',
+    
   });
 
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchAuthUsers = async () => {
+    const fetchProducts = async () => {
       try {
         axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
-        const response = await axios.get<AuthUsersResponse>('http://localhost:2000/auth/users');
-        setAuthUsers(response.data.users);
+        const response = await axios.get<ProductsResponse>('http://localhost:2500/products');
+        setProducts(response.data.products);
       } catch (err) {
-        setError('Failed to fetch auth users');
-        console.error('Error fetching auth users:', err);
+        setError('Failed to fetch auth products');
+        console.error('Error fetching auth products:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAuthUsers();
+    fetchProducts();
   }, []);
 
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const handleCreateproduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+     
       axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
       
-      await axios.post('http://localhost:2000/auth/users', createForm);
-      setCreateForm({ username: '', email: '', password: '', roles: '' });
+      await axios.post('http://localhost:2500/products', createForm);
+      setCreateForm({ name: '', price: ''});
       setShowCreateModal(false);
       
-      const response = await axios.get<AuthUsersResponse>('http://localhost:2000/auth/users');
-      setAuthUsers(response.data.users);
+      const response = await axios.get<ProductsResponse>('http://localhost:2500/products');
+      setProducts(response.data.products);
     } catch (err: any) {
-      setError('Failed to create user. Please try again.');
-      console.error('Error creating user:', err);
+      setError('Failed to create product. Please try again.');
+      console.error('Error creating product:', err);
     }
   };
 
-  const handleUpdateUser = async (e: React.FormEvent) => {
+  const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
       
       const updateData = { ...updateForm };
-      if (!updateData.password) {
-        delete updateData.password;
-      }
       
-      await axios.put(`http://localhost:2000/auth/users/${updateForm.id}`, updateData);
+      
+      await axios.put(`http://localhost:2500/products/${updateForm.id}`, updateData);
       setShowUpdateModal(false);
       
-      const response = await axios.get<AuthUsersResponse>('http://localhost:2000/auth/users');
-      setAuthUsers(response.data.users);
+      const response = await axios.get<ProductsResponse>('http://localhost:2500/products');
+      setProducts(response.data.products);
     } catch (err: any) {
-      setError('Failed to update user. Please try again.');
-      console.error('Error updating user:', err);
+      setError('Failed to update product. Please try again.');
+      console.error('Error updating product:', err);
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) {
+  const handleDeleteproduct = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) {
       return;
     }
     
     try {
       axios.defaults.headers.common['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
-      await axios.delete(`http://localhost:2000/auth/users/${id}`);
+      await axios.delete(`http://localhost:2500/products/${id}`);
       
-      const response = await axios.get<AuthUsersResponse>('http://localhost:2000/auth/users');
-      setAuthUsers(response.data.users);
+      const response = await axios.get<ProductsResponse>('http://localhost:2500/products');
+      setProducts(response.data.products);
     } catch (err: any) {
-      setError('Failed to delete user. Please try again.');
-      console.error('Error deleting user:', err);
+      setError('Failed to delete product. Please try again.');
+      console.error('Error deleting product:', err);
     }
   };
 
-  const openUpdateModal = (user: AuthUser) => {
+  const openUpdateModal = (product: Product) => {
     setUpdateForm({
-      ...user,
-      password: '',
+      ...product,
+      price: '',
     });
     setShowUpdateModal(true);
   };
@@ -146,7 +143,7 @@ const AuthUsersDashboard: React.FC = () => {
       
       
       <div className="content-wrapper">
-        <h1>Auth Users</h1>
+        <h1>Auth products</h1>
 
         {error && (
           <div className="alert alert-danger alert-dismissible fade show" role="alert">
@@ -158,39 +155,37 @@ const AuthUsersDashboard: React.FC = () => {
         <table className="table table-striped table-hover">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Roles</th>
+              <th>name</th>
+              <th>Price</th>
               <th>
                 <button 
                   id="create-btn" 
                   className="btn btn-primary"
                   onClick={() => setShowCreateModal(true)}
                 >
-                  Add User
+                  Add Product
                 </button>
               </th>
             </tr>
           </thead>
           <tbody>
-            {authUsers.length > 0 ? (
-              authUsers.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.id}</td>
-                  <td>{user.username}</td>
-                  <td>{user.email}</td>
-                  <td>{user.roles}</td>
+            {Products.length > 0 ? (
+              Products.map((product) => (
+                <tr key={product.id}>
+                  
+                  <td>{product.name}</td>
+                  <td>{product.price}</td>
+                  
                   <td>
                     <button 
                       className="btn btn-warning btn-sm me-2 update-btn"
-                      onClick={() => openUpdateModal(user)}
+                      onClick={() => openUpdateModal(product)}
                     >
                       Update
                     </button>
                     <button 
                       className="btn btn-danger btn-sm"
-                      onClick={() => handleDeleteUser(user.id)}
+                      onClick={() => handleDeleteproduct(product.id)}
                     >
                       Delete
                     </button>
@@ -200,7 +195,7 @@ const AuthUsersDashboard: React.FC = () => {
             ) : (
               <tr>
                 <td colSpan={5} className="text-center">
-                  No users found
+                  No products found
                 </td>
               </tr>
             )}
@@ -214,72 +209,46 @@ const AuthUsersDashboard: React.FC = () => {
               <div className="modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <h5 className="modal-title">Create Auth User</h5>
+                    <h5 className="modal-title">Create product</h5>
                     <button 
                       type="button" 
                       className="btn-close" 
                       onClick={() => setShowCreateModal(false)}
                     ></button>
                   </div>
-                  <form onSubmit={handleCreateUser}>
+                  <form onSubmit={handleCreateproduct}>
                     <div className="modal-body">
+                      
                       <div className="mb-3">
-                        <label htmlFor="createUsername" className="form-label">
-                          Username:
+                        <label htmlFor="createName" className="form-label">
+                          Name:
                         </label>
                         <input
                           type="text"
                           className="form-control"
-                          id="createUsername"
-                          value={createForm.username}
-                          onChange={(e) => setCreateForm({...createForm, username: e.target.value})}
+                          id="createName"
+                          value={createForm.name}
+                          onChange={(e) => setCreateForm({...createForm, name: e.target.value})}
                           required
                         />
                       </div>
                       <div className="mb-3">
-                        <label htmlFor="createEmail" className="form-label">
-                          Email:
-                        </label>
-                        <input
-                          type="email"
-                          className="form-control"
-                          id="createEmail"
-                          value={createForm.email}
-                          onChange={(e) => setCreateForm({...createForm, email: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label htmlFor="createPassword" className="form-label">
-                          Password:
-                        </label>
-                        <input
-                          type="password"
-                          className="form-control"
-                          id="createPassword"
-                          value={createForm.password}
-                          onChange={(e) => setCreateForm({...createForm, password: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label htmlFor="createRoles" className="form-label">
-                          Roles (comma-separated):
+                        <label htmlFor="createPrice" className="form-label">
+                          Price:
                         </label>
                         <input
                           type="text"
                           className="form-control"
-                          id="createRoles"
-                          value={createForm.roles}
-                          onChange={(e) => setCreateForm({...createForm, roles: e.target.value})}
+                          id="createPrice"
+                          value={createForm.price}
+                          onChange={(e) => setCreateForm({...createForm, price: e.target.value})}
                           required
                         />
-                        <small className="text-muted">Example: admin,user</small>
                       </div>
-                    </div>
+                        </div>
                     <div className="modal-footer">
                       <button type="submit" className="btn btn-primary">
-                        Create User
+                        Create product
                       </button>
                       <button 
                         type="button" 
@@ -303,69 +272,44 @@ const AuthUsersDashboard: React.FC = () => {
               <div className="modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <h5 className="modal-title">Update Auth User</h5>
+                    <h5 className="modal-title">Update product</h5>
                     <button 
                       type="button" 
                       className="btn-close" 
                       onClick={() => setShowUpdateModal(false)}
                     ></button>
                   </div>
-                  <form onSubmit={handleUpdateUser}>
+                  <form onSubmit={handleUpdateProduct}>
                     <div className="modal-body">
                       <input type="hidden" id="updateId" value={updateForm.id} />
                       
                       <div className="mb-3">
-                        <label htmlFor="updateUsername" className="form-label">
-                          Username:
+                        <label htmlFor="updatename" className="form-label">
+                          name:
                         </label>
                         <input
                           type="text"
                           className="form-control"
-                          id="updateUsername"
-                          value={updateForm.username}
-                          onChange={(e) => setUpdateForm({...updateForm, username: e.target.value})}
+                          id="updatename"
+                          value={updateForm.name}
+                          onChange={(e) => setUpdateForm({...updateForm, name: e.target.value})}
                           required
                         />
                       </div>
+                      
                       <div className="mb-3">
-                        <label htmlFor="updateEmail" className="form-label">
-                          Email:
+                        <label htmlFor="updatePrice" className="form-label">
+                          Price (leave blank to keep current):
                         </label>
                         <input
-                          type="email"
+                          type="price"
                           className="form-control"
-                          id="updateEmail"
-                          value={updateForm.email}
-                          onChange={(e) => setUpdateForm({...updateForm, email: e.target.value})}
-                          required
+                          id="updatePrice"
+                          value={updateForm.price || ''}
+                          onChange={(e) => setUpdateForm({...updateForm, price: e.target.value})}
                         />
                       </div>
-                      <div className="mb-3">
-                        <label htmlFor="updatePassword" className="form-label">
-                          Password (leave blank to keep current):
-                        </label>
-                        <input
-                          type="password"
-                          className="form-control"
-                          id="updatePassword"
-                          value={updateForm.password || ''}
-                          onChange={(e) => setUpdateForm({...updateForm, password: e.target.value})}
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label htmlFor="updateRoles" className="form-label">
-                          Roles (comma-separated):
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="updateRoles"
-                          value={updateForm.roles}
-                          onChange={(e) => setUpdateForm({...updateForm, roles: e.target.value})}
-                          required
-                        />
-                        <small className="text-muted">Example: admin,user</small>
-                      </div>
+                      
                     </div>
                     <div className="modal-footer">
                       <button type="submit" className="btn btn-warning">
@@ -390,4 +334,4 @@ const AuthUsersDashboard: React.FC = () => {
   );
 };
 
-export default AuthUsersDashboard;
+export default ProductsDashboard;

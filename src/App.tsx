@@ -3,23 +3,37 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Container } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-
+import {getUserRoles, verifyToken} from './services/JwtService'
 import NavigationBar from './components/navbar/navBar';
-import AuthUsersDashboard from './components/products/products';
+import ProductsDashboard from './components/products/products';
 import Login from './components/login/login';
+import Dashboard from './components/dashboard/dashboard';
 
 
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const token = localStorage.getItem('accessToken');
+  interface PrivateRouteProps {
+  children: React.ReactNode;
+  requiredRole?: string;
+}
+
+ 
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) => {
+  const isAuthenticated = verifyToken();
   
-  if (!token) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
+  if (requiredRole) {
+    const userRoles = getUserRoles();
+    if (!userRoles.includes(requiredRole)) {
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
+
   return <>{children}</>;
 };
-
 const App: React.FC = () => {
+ 
   return (
     <Router>
       <div className="App">
@@ -29,19 +43,15 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/login" element={<Login />} />
             
-            <Route path="/auth/users" element={
-              <PrivateRoute>
-                <AuthUsersDashboard />
+           <Route path="/products" element={
+              <PrivateRoute requiredRole='admin'>
+                <ProductsDashboard />
               </PrivateRoute>
             } />
+            <Route path="/dashboard" element={<Dashboard />} />
             
             
-            
-            <Route path="/" element={
-              <PrivateRoute>
-                <Navigate to="/auth/users" replace />
-              </PrivateRoute>
-            } />
+          
           </Routes>
         </Container>
       </div>
