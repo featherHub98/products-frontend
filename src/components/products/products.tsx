@@ -36,7 +36,7 @@ const ProductsDashboard: React.FC = () => {
 
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
-
+  const [filteredProducts,setFilteredProducts] = useState<string>('')
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -127,7 +127,7 @@ const ProductsDashboard: React.FC = () => {
       document.body.style.overflow = 'auto';
     };
   }, [showCreateModal, showUpdateModal]);
-
+ 
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
@@ -136,6 +136,10 @@ const ProductsDashboard: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  const filterProducts = (Products:any)=>{
+    return Products.filter((product:any)=> product.name.includes(filteredProducts) )
   }
 
   return (
@@ -151,7 +155,7 @@ const ProductsDashboard: React.FC = () => {
             <button type="button" className="btn-close" onClick={() => setError('')}></button>
           </div>
         )}
-
+        <input type='text' placeholder='filter by name' onChange={(e)=>setFilteredProducts(e.target.value)}></input>
         <table className="table table-striped table-hover">
           <thead>
             <tr>
@@ -166,11 +170,13 @@ const ProductsDashboard: React.FC = () => {
                   Add Product
                 </button>
               </th>
+              
             </tr>
           </thead>
           <tbody>
             {Products.length > 0 ? (
-              Products.map((product) => (
+              
+              filterProducts(Products).map((product:Product) => (
                 <tr key={product.id}>
                   
                   <td>{product.name}</td>
